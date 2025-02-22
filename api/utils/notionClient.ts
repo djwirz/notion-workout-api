@@ -1,10 +1,28 @@
 const NOTION_API_KEY = process.env.NOTION_API_KEY;
 const WORKOUT_ENTRIES_DB_ID = process.env.WORKOUT_ENTRIES_DB_ID;
 const WORKOUT_TEMPLATES_DB_ID = process.env.WORKOUT_TEMPLATES_DB_ID;
+const NOTION_INBOX_DB_ID = process.env.NOTION_INBOX_DB_ID;
 
-if (!NOTION_API_KEY || !WORKOUT_ENTRIES_DB_ID || !WORKOUT_TEMPLATES_DB_ID) {
-  throw new Error("Missing required environment variables.");
-}
+const validateEnvironmentVariables = () => {
+  const requiredVars = {
+    NOTION_API_KEY,
+    WORKOUT_ENTRIES_DB_ID,
+    WORKOUT_TEMPLATES_DB_ID,
+    NOTION_INBOX_DB_ID,
+  };
+
+  const missingVars = Object.entries(requiredVars)
+    .filter(([_, value]) => !value)
+    .map(([key]) => key);
+
+  if (missingVars.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(", ")}`
+    );
+  }
+};
+
+validateEnvironmentVariables();
 
 const HEADERS = {
   "Authorization": `Bearer ${NOTION_API_KEY}`,
@@ -62,3 +80,30 @@ export async function createWorkoutEntry(workoutId: string, entry: any) {
 
   return fetchFromNotion(`https://api.notion.com/v1/pages`, { method: "POST", body });
 }
+
+export async function logApiInteraction(endpoint: string, requestData: any, responseData: any, status: string) {
+  const timestamp = new Date().toISOString();
+  const body = JSON.stringify({
+    parent: { database_id: NOTION_INBOX_DB_ID },
+    properties: {
+      Name: {
+        title: [{ text: { content: `Interaction: ${endpoint}` } }],
+      },
+      Timestamp: {
+        date: { start: timestamp },
+      },
+      Status: {
+        select: { name: status },
+      },
+      Request: {
+        rich_text: [{ text: { content: JSON.stringify(requestData, null, 2) } }],
+      },
+      Response: {
+        rich_text: [{ text: { content: JSON.stringify(responseData, null, 2) } }],
+      },
+    },
+  });
+
+  return fetchFromNotion(`https://api.notion.com/v1/pages`, { method: "POST", body });
+}
+
