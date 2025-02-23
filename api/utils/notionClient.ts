@@ -16,11 +16,15 @@ async function fetchFromNotion(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorDetails = await response.text();
-    console.error(`Notion API error: ${response.status} - ${errorDetails}`);
-    throw new Error(`Notion API error: ${response.statusText}`);
+    console.error(`Notion API error (${response.status}): ${errorDetails}`);
+    throw new Error(`Notion API error ${response.status} - ${response.statusText}: ${errorDetails}`);
   }
 
-  return response.json();
+  try {
+    return await response.json();
+  } catch (jsonError) {
+    throw new Error(`Failed to parse Notion API response: ${jsonError}`);
+  }
 }
 
 export async function getWorkoutTemplate(workoutId: string) {
@@ -50,10 +54,10 @@ export async function createWorkoutEntry(workoutId: string, entry: any) {
           title: [{ text: { content: entry?.properties?.Name?.title?.at(0)?.text?.content || "Unnamed Exercise" } }],
         },
         Workout: { relation: [{ id: workoutId }] },
-        Exercise: entry?.properties?.Exercise || {},
-        Reps: entry?.properties?.Reps || {},
-        Sets: entry?.properties?.Sets || {},
-        Weight: entry?.properties?.Weight || {},
+        Exercise: entry?.properties?.Exercise || { relation: [] },
+        Reps: entry?.properties?.Reps || { number: 0 },
+        Sets: entry?.properties?.Sets || { number: 0 },
+        Weight: entry?.properties?.Weight || { number: 0 },
       },
     }),
   });
