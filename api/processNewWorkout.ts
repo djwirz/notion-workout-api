@@ -17,8 +17,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const entryTemplates = await getWorkoutEntryTemplates(workoutTemplateId);
     if (entryTemplates.length === 0) {
       await logApiInteraction("/api/generateWorkoutEntries", { workoutId }, { message: "No entry templates found" }, "Success");
-      return res.status(200).json({ message: "No entry templates found." });
+      return res.status(204).json({ message: "No entry templates found." });
     }
+    
 
     const createPromises = entryTemplates.map((entry: any) => createWorkoutEntry(workoutId, entry));
     await Promise.all(createPromises);
