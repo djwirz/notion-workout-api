@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { getWorkoutTemplate, getWorkoutEntryTemplates, createWorkoutEntry, logApiInteraction } from "./utils/notionClient";
+import { getWorkoutTemplate, getWorkoutEntryTemplates, createWorkoutEntry, logApiInteraction } from "../utils/notionClient";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method Not Allowed" });

@@ -4,7 +4,8 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "./dist",
-    "rootDir": "./api",
+    "rootDir": "./",
     "strict": true
-  }
+  },
+  "include": ["api/**/*", "utils/**/*"]
 }
